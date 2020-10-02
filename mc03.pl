@@ -1,43 +1,47 @@
 :-abolish(asked/2).
-:-dynamic(ask/2). 
+:-dynamic(ask/2).
 :-dynamic ask2/4, asked/2.
 
 /* Tools for questioning the patient */
 askif(Qcode) :- ask(Qcode,A), positive_answer(Qcode,A).
 askifnot(Qcode) :- not(askif(Qcode)).
-
 positive_answer(Qcode,A) :- positive(A).
 positive_answer(Qcode,A) :- not(negative(A)),
   not(positive(A)), write('Please answer yes or no.'),
   read(A2), retract(asked(Qcode,A)),
   asserta(asked(Qcode,A2)), positive(A2).
-
 ask(Qcode,A) :- asked(Qcode,A).
 ask(Qcode,A) :- not(asked(Qcode,A)), questioncode(Qcode,Q),
   write(Q), write('? (yes|no) '), read(A2), ask2(Q,Qcode,A2,A).
-
 ask2(Q,Qcode,'?',A) :- explain(Qcode), ask(Qcode,A).
 ask2(Q,Qcode,A,A) :- not(A='?'), asserta(asked(Qcode,A)).
-
 positive(yes).
 negative(no).
 
 /* Top-level diagnosis rules */
 diagnosis(appendicitis) :- askif(abdominal_pain), symptom_appendicitis_1, mantrels_score.
-diagnosis(pancreatitis) :- 
+diagnosis(pancreatitis) :-
   askif(abdominal_pain), symptom_pancreatitis, patient_history_pancreatitis, physical_findings_pancreatitis_1.
-diagnosis(pancreatitis) :- 
+diagnosis(pancreatitis) :-
   askif(abdominal_pain), symptom_pancreatitis, patient_history_pancreatitis, physical_findings_pancreatitis_2.
-diagnosis(pancreatitis) :- 
+diagnosis(pancreatitis) :-
   askif(abdominal_pain), symptom_pancreatitis, patient_history_pancreatitis, physical_findings_pancreatitis_3.
-diagnosis(pancreatitis) :- 
+diagnosis(pancreatitis) :-
   askif(abdominal_pain), symptom_pancreatitis, patient_history_pancreatitis, physical_findings_pancreatitis_4.
-diagnosis(pancreatitis) :- 
+diagnosis(pancreatitis) :-
   askif(abdominal_pain), symptom_pancreatitis, patient_history_pancreatitis, physical_findings_pancreatitis_5.
+diagnosis(cirrhosis) :- askif(abdominal_pain), symptom_cirrhosis_1, symptom_cirrhosis_2, symptom_cirrhosis_3, symptom_cirrhosis_4.
+diagnosis(tetanus) :- tetanus_vacc, askif(abdominal_pain), symptom_tetanus_1, symptom_tetanus_3, symptom_tetanus_4, symptom_tetanus_5, tetanus_trigger.
+diagnosis(tetanus) :- tetanus_vacc, symptom_tetanus_1, symptom_tetanus_2,  tetanus_trigger.
+diagnosis(rabies) :- rabies_vacc, animal_bite, symptom_rabies_1, symptom_rabies_2, symptom_rabies_3, symptom_rabies_4.
 diagnosis(asthma) :- symptom_asthma, patient_history_asthma, physical_findings_asthma.
 diagnosis(myocardial_infarction) :- symptom_myocardial_infarction, physical_findings_myocardial_infarction.
 diagnosis(myocardial_infarction) :- symptom_myocardial_infarction, lifestyle_factors.
 diagnosis(stroke) :- symptom_stroke.
+diagnosis(meningitis) :- symptom_meningitis_child.
+diagnosis(meningitis) :- symptom_meningitis_1, symptom_meningitis_2, symptom_meningitis_3, symptom_meningitis_4, symptom_meningitis_5, symptom_meningitis_history.
+diagnosis(gout) :- symptom_gout_symptom_1, gout_history, gout_trigger.
+diagnosis(gout) :- symptom_gout_symptom_2, gout_history, gout_trigger.
 diagnosis(default).
 
 /* Definitions of intermediate predicates */
@@ -67,7 +71,7 @@ symptom_pancreatitis :- askif(diarrhea).
 patient_history_pancreatitis  :- askif(recent_operation).
 patient_history_pancreatitis  :- askif(history_hypertriglyceridemia).
 patient_history_pancreatitis  :- askif(alcoholism).
-physical_findings_pancreatitis_1  :- askif(fever), askif(tachycardia). 
+physical_findings_pancreatitis_1  :- askif(fever), askif(tachycardia).
 physical_findings_pancreatitis_1  :- askif(hypotension).
 physical_findings_pancreatitis_2  :- askif(rebound_tenderness).
 physical_findings_pancreatitis_3  :- askif(jaundice).
@@ -112,6 +116,63 @@ symptom_stroke :- askif(facial_droop).
 symptom_stroke :- askif(ataxia).
 symptom_stroke :- askif(nystagmus).
 symptom_stroke :- askif(aphasia).
+%---
+symptom_meningitis_1 :- askif(fever).
+symptom_meningitis_1 :- askif(headache).
+symptom_meningitis_1 :- askif(confusion).
+symptom_meningitis_2 :- askif(stiffneck).
+symptom_meningitis_2 :- askif(musclepain).
+symptom_meningitis_3 :- askif(nausea).
+symptom_meningitis_3 :- askif(vomiting).
+symptom_meningitis_4 :- askif(sleepy).
+symptom_meningitis_5 :- askif(irritlight).
+symptom_meningitis_history :- askif(westnile).
+symptom_meningitis_history :- askif(mosquitobite).
+symptom_meningitis_history :- askif(exposed_to_child_with_fever).
+symptom_meningitis_child:- askif(child), askif(bulgingfont), askif(cryingwhencarry), askif(decreasemusc).
+%---
+symptom_gout_symptom_1 :- askif(jointswell).
+symptom_gout_symptom_1 :- askif(jointpain).
+symptom_gout_symptom_2 :- askif(musclepain), askif(fever).
+gout_history :- askif(familygout).
+gout_trigger :- askif(gouttrigger).
+%---
+symptom_tetanus_1 :- askif(headache).
+symptom_tetanus_1 :- askif(musclepain).
+symptom_tetanus_1 :- askif(stiffneck).
+symptom_tetanus_2 :- askif(risussardonicus).
+symptom_tetanus_2 :- askif(jawpain).
+symptom_tetanus_3 :- askif(legsextened).
+symptom_tetanus_4 :- askif(difficultswallow).
+symptom_tetanus_5 :- askif(seizure).
+symptom_tetanus_5 :- askif(spasms).
+tetanus_vacc :- askifnot(tetanusvacc).
+tetanus_trigger :- askif(wounded).
+%---
+animal_bite :- askif(animalbite).
+rabies_vacc :- askifnot(rabies_vacc).
+symptom_rabies_1 :- askif(fever).
+symptom_rabies_1 :- askif(chills).
+symptom_rabies_1 :- askif(sorethroat).
+symptom_rabies_2 :- askif(decreasemusc).
+symptom_rabies_2 :- askif(anorexia).
+symptom_rabies_3 :- askif(nausea).
+symptom_rabies_3 :- askif(vomiting).
+symptom_rabies_3 :- askif(diarrhea).
+symptom_rabies_4 :- askif(malaise).
+symptom_rabies_4 :- askif(anxiety).
+symptom_rabies_4 :- askif(insomnia).
+symptom_rabies_4 :- askif(depression).
+symptom_rabies_4 :- askif(confusion).
+%---
+symptom_cirrhosis_1 :- askif(fatigue).
+symptom_cirrhosis_2 :- askif(anorexia).
+symptom_cirrhosis_2 :- askif(decreasemusc).
+symptom_cirrhosis_3 :- askif(jaundice).
+symptom_cirrhosis_4 :- askif(angiomas).
+symptom_cirrhosis_4 :- askif(reddishpalms).
+symptom_cirrhosis_4 :- askif(whitenails_lunula).
+symptom_cirrhosis_4 :- askif(fingercubbing).
 
 /* Diagnosis decoding */
 start_diagnosis(D) :- diagnosis(X), diagnosis_code(X,D).
@@ -120,6 +181,11 @@ diagnosis_code(pancreatitis,'The patient probably has acute pancreatitis').
 diagnosis_code(asthma,'The patient probably has acute asthma').
 diagnosis_code(myocardial_infarction,'The patient probably has acute myocardial infarction').
 diagnosis_code(stroke,'The patient probably has acute ischemic stroke').
+diagnosis_code(meningitis, 'The patient probably has meningitis').
+diagnosis_code(gout, 'The patient probably has Gout').
+diagnosis_code(tetanus, 'The patient probably has Tetanus').
+diagnosis_code(rabies, 'The patient probably has Rabies').
+diagnosis_code(cirrhosis, 'The patient probably has Cirrhosis').
 diagnosis_code(default,'Sorry, I dont seem to be able to diagnose the disease').
 
 /* Question decoding */
@@ -188,3 +254,38 @@ questioncode(facial_droop,'Does the patient have one corner of their mouth to dr
 questioncode(ataxia,'Does the patient shows lack of coordination while performing voluntary movements').
 questioncode(nystagmus,'Does the patient shows rapid involuntary eye movement').
 questioncode(aphasia,'Does the patient lose partial or total language skills').
+questioncode(headache,'Does the patient experience headaches').
+questioncode(stiffneck,'Does the patient have neck pains').
+questioncode(musclepain,'Does the patient have muscle pains').
+questioncode(confusion,'Does the patient experience confusion').
+questioncode(bulgingfont,'Does the patient have bulging fontanelle').
+questioncode(cryingwhencarry,'Does the patient cry when carried').
+questioncode(decreasemusc,'Does the patient have decreased muscle tone').
+questioncode(sleepy,'Does the patient always feel sleepy').
+questioncode(irritlight,'Does the patient gets irritated with lights').
+questioncode(westnile,'Does the patient have history of travel to West Nile').
+questioncode(mosquitobite,'Was the patient bitten by a mosquito').
+questioncode(exposed_to_child_with_fever,'Was the patient exposed to a child with fever').
+questioncode(jointswell,'Does the patient have reddish swelling of joints in fingers or toes').
+questioncode(jointpain,'Does the patient experience pain of the instep, wrist, elbow, knee and ankle').
+questioncode(familygout, 'Does the patient have a family history of Gout?').
+questioncode(gouttrigger, 'Does the patient experience the pain and swelling after eating seafoods, organ meat or drinking beer').
+questioncode(jawpain, 'Does the patient experience jaw pain').
+questioncode(risussardonicus, 'Does the patient show a permanent grin with lips getting thinner ').
+questioncode(legsextended, 'Does the patient show unusually long or extended legs ').
+questioncode(difficultswallow, 'Does the patient have diffulty to swallow').
+questioncode(seizure, 'Does the patient experience episodes of seizure ').
+questioncode(spasms, 'Does the patient experince spasms').
+questioncode(tetanusvacc, 'Is the patient vaccinated with tetanus immunization').
+questioncode(wounded, 'Is the patient wounded').
+questioncode(animalbite,'Was the patient bitten by or scratched by an animal').
+questioncode(rabies_vacc, 'Is the patient vaccinated with rabies immunization').
+questioncode(chills, 'Is the patient experiencing chills').
+questioncode(sorethroat, 'Does the patient have sorethroat').
+questioncode(anxiety, 'Does the patient feel uneasy or anxious about something').
+questioncode(insomnia, 'Does the patient have difficulty sleeping').
+questioncode(depression, 'Does the patient experience depression').
+questioncode(angiomas, 'Does the patient have swollen blood vessels that looks like spiderwebs just below the skin').
+questioncode(reddishpalms, 'Does the patient have unusual reddish palms').
+questioncode(whitenails_lunula, 'Does the nails of the patient turn white and the lunula start to disappear').
+questioncode(fingercubbing, 'Does the patient experience finger clubbing').
